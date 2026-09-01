@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+  client    Client?
+  student   Student?
+}
+
+model Student {
+  id                  String               @id @default(cuid())
+  userId              String               @unique
+  phone               String?
+  college             String?
+  course              String?
+  graduationYear      Int?
+  resumeUrl           String?
+  Application         Application[]
+  payments            Payment[]
+  projectsAssigned    Project[]            @relation("AssignedStudent")
+  projectApplications ProjectApplication[]
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submissions         Submission[]
+}
+
+model Client {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  companyName String
+  phone       String?
+  website     String?
+  address     String?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Job         Job[]
+  payments    Payment[]
+  projects    Project[]
+}
+
+model Application {
+  id        String            @id
+  studentId String
+  jobId     String
+  status    ApplicationStatus @default(PENDING)
+  appliedAt DateTime          @default(now())
+  Job       Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  Student   Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, jobId])
+}
+
+model Job {
+  id          String        @id
+  clientId    String
+  title       String
+  description String
+  location    String?
+  salary      String?
+  skills      String?
+  createdAt   DateTime      @default(now())
+  Application Application[]
+  Client      Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model Project {
+  id            String               @id @default(cuid())
+  clientId      String
+  assignedToId  String?
+  title         String
+  description   String
+  location      String?
+  paymentAmount Decimal              @db.Decimal(10, 2)
+  skills        String?
+  status        ProjectStatus        @default(OPEN)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  payment       Payment?
+  assignedTo    Student?             @relation("AssignedStudent", fields: [assignedToId], references: [id])
+  client        Client               @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  applications  ProjectApplication[]
+  submission    Submission?
+}
+
+model ProjectApplication {
+  id        String            @id @default(cuid())
+  projectId String
+  studentId String
+  status    ApplicationStatus @default(PENDING)
+  appliedAt DateTime          @default(now())
+  project   Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  student   Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, studentId])
+}
+
+model Submission {
+  id          String    @id @default(cuid())
+  projectId   String    @unique
+  studentId   String
+  description String?
+  fileUrl     String?
+  submittedAt DateTime  @default(now())
+  approvedAt  DateTime?
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  projectId     String        @unique
+  clientId      String
+  studentId     String
+  amount        Decimal       @db.Decimal(10, 2)
+  platformFee   Decimal       @db.Decimal(10, 2)
+  studentAmount Decimal       @db.Decimal(10, 2)
+  status        PaymentStatus @default(PENDING)
+  paidAt        DateTime?
+  releasedAt    DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  client        Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  project       Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  student       Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  STUDENT
+  CLIENT
+  ADMIN
+}
+
+enum ProjectStatus {
+  OPEN
+  ASSIGNED
+  IN_PROGRESS
+  SUBMITTED
+  COMPLETED
+  CANCELLED
+}
+
+enum ApplicationStatus {
+  PENDING
+  SHORTLISTED
+  REJECTED
+  ACCEPTED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  RELEASED
+  FAILED
+  REFUNDED
+}
