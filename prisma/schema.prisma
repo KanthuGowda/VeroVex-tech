@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
 }
 
 datasource db {
@@ -13,6 +14,7 @@ model User {
   password  String
   role      Role
   createdAt DateTime @default(now())
+
   client    Client?
   student   Student?
 }
@@ -25,6 +27,7 @@ model Student {
   course              String?
   graduationYear      Int?
   resumeUrl           String?
+
   Application         Application[]
   payments            Payment[]
   projectsAssigned    Project[]            @relation("AssignedStudent")
@@ -40,6 +43,7 @@ model Client {
   phone       String?
   website     String?
   address     String?
+
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   Job         Job[]
   payments    Payment[]
@@ -52,6 +56,7 @@ model Application {
   jobId     String
   status    ApplicationStatus @default(PENDING)
   appliedAt DateTime          @default(now())
+
   Job       Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
   Student   Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
@@ -67,6 +72,7 @@ model Job {
   salary      String?
   skills      String?
   createdAt   DateTime      @default(now())
+
   Application Application[]
   Client      Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
 }
@@ -83,6 +89,7 @@ model Project {
   status        ProjectStatus        @default(OPEN)
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
+
   payment       Payment?
   assignedTo    Student?             @relation("AssignedStudent", fields: [assignedToId], references: [id])
   client        Client               @relation(fields: [clientId], references: [id], onDelete: Cascade)
@@ -96,6 +103,7 @@ model ProjectApplication {
   studentId String
   status    ApplicationStatus @default(PENDING)
   appliedAt DateTime          @default(now())
+
   project   Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
   student   Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
@@ -110,8 +118,9 @@ model Submission {
   fileUrl     String?
   submittedAt DateTime  @default(now())
   approvedAt  DateTime?
+
   project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }
 
 model Payment {
@@ -127,6 +136,7 @@ model Payment {
   releasedAt    DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+
   client        Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
   project       Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
   student       Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
