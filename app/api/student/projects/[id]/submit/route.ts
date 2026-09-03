@@ -77,7 +77,6 @@ export async function POST(
       );
     }
 
-    // Make sure this student was actually accepted for this project
     if (project.applications.length === 0) {
       return NextResponse.json(
         {
@@ -88,25 +87,44 @@ export async function POST(
       );
     }
 
-    // Prevent duplicate submission
-    if (project.submission) {
+    // Do not allow submitting an already completed project
+    if (project.status === "COMPLETED") {
       return NextResponse.json(
         {
           message:
-            "You have already submitted this project.",
+            "This project has already been completed.",
         },
-        { status: 409 }
+        { status: 400 }
       );
     }
 
-    const submission = await prisma.submission.create({
-      data: {
-        projectId: id,
-        studentId: user.student.id,
-        description: description || null,
-        fileUrl: fileUrl || null,
-      },
-    });
+    let submission;
+
+    // If a previous submission exists, this means
+    // the admin requested changes and the student is resubmitting.
+    if (project.submission) {
+      submission = await prisma.submission.update({
+        where: {
+          id: project.submission.id,
+        },
+        data: {
+          description: description || null,
+          fileUrl: fileUrl || null,
+          submittedAt: new Date(),
+          approvedAt: null,
+        },
+      });
+    } else {
+      // First submission
+      submission = await prisma.submission.create({
+        data: {
+          projectId: id,
+          studentId: user.student.id,
+          description: description || null,
+          fileUrl: fileUrl || null,
+        },
+      });
+    }
 
     await prisma.project.update({
       where: {
@@ -119,10 +137,12 @@ export async function POST(
 
     return NextResponse.json(
       {
-        message: "Work submitted successfully!",
+        message: project.submission
+          ? "Work resubmitted successfully!"
+          : "Work submitted successfully!",
         submission,
       },
-      { status: 201 }
+      { status: project.submission ? 200 : 201 }
     );
   } catch (error) {
     console.error("SUBMISSION ERROR:", error);

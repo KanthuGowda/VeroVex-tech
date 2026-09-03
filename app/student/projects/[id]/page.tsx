@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -186,6 +187,9 @@ export default function ProjectDetailsPage() {
     return null;
   }
 
+  const changesRequested =
+    project.status === "IN_PROGRESS" && submitted;
+
   return (
     <main className="min-h-screen bg-gray-100">
 
@@ -232,20 +236,24 @@ export default function ProjectDetailsPage() {
 
             <span
               className={`rounded-full px-4 py-2 text-sm font-semibold ${
-                submitted
-                  ? "bg-blue-100 text-blue-700"
-                  : accepted
-                    ? "bg-green-100 text-green-700"
-                    : project.status === "OPEN"
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-gray-100 text-gray-700"
+                changesRequested
+                  ? "bg-orange-100 text-orange-700"
+                  : submitted
+                    ? "bg-blue-100 text-blue-700"
+                    : accepted
+                      ? "bg-green-100 text-green-700"
+                      : project.status === "OPEN"
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-gray-100 text-gray-700"
               }`}
             >
-              {submitted
-                ? "SUBMITTED"
-                : accepted
-                  ? "ASSIGNED"
-                  : project.status}
+              {changesRequested
+                ? "CHANGES REQUESTED"
+                : submitted
+                  ? "SUBMITTED"
+                  : accepted
+                    ? "ASSIGNED"
+                    : project.status}
             </span>
 
           </div>
@@ -280,7 +288,14 @@ export default function ProjectDetailsPage() {
               </p>
 
               <p className="mt-1 font-semibold">
-                ₹{project.paymentAmount.toString()}
+                ₹
+                {Number(project.paymentAmount).toLocaleString(
+                  "en-IN",
+                  {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }
+                )}
               </p>
             </div>
 
@@ -312,9 +327,39 @@ export default function ProjectDetailsPage() {
             </div>
           )}
 
-          {/* WORK ALREADY SUBMITTED */}
-          {submitted ? (
+          {/* ADMIN REQUESTED CHANGES */}
+          {changesRequested ? (
 
+            <div className="mt-8 rounded-lg bg-orange-50 p-6 text-center">
+
+              <p className="text-lg font-bold text-orange-700">
+                ⚠ Changes Requested
+              </p>
+
+              <p className="mt-2 text-sm text-orange-600">
+                Your previous submission needs changes.
+              </p>
+
+              <p className="mt-3 text-sm text-gray-600">
+                Please update your work and submit it again.
+              </p>
+
+              <button
+                onClick={() =>
+                  router.push(
+                    `/student/projects/${project.id}/submit`
+                  )
+                }
+                className="mt-5 w-full rounded-lg bg-orange-600 px-6 py-4 text-lg font-bold text-white hover:bg-orange-700"
+              >
+                Resubmit Task
+              </button>
+
+            </div>
+
+          ) : submitted ? (
+
+            /* WORK ALREADY SUBMITTED */
             <div className="mt-8 rounded-lg bg-blue-50 p-6 text-center">
 
               <p className="text-lg font-bold text-blue-700">
@@ -389,3 +434,4 @@ export default function ProjectDetailsPage() {
     </main>
   );
 }
+

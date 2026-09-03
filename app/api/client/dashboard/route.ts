@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../lib/prisma";
 
-export async function GET(
-  request: NextRequest
-) {
+export async function GET(request: NextRequest) {
   try {
-    const email =
-      request.headers.get("x-user-email");
+    const email = request.headers.get("x-user-email");
 
     if (!email) {
       return NextResponse.json(
@@ -32,6 +29,7 @@ export async function GET(
                     status: true,
                   },
                 },
+                payment: true,
               },
               orderBy: {
                 createdAt: "desc",
@@ -42,11 +40,7 @@ export async function GET(
       },
     });
 
-    if (
-      !user ||
-      user.role !== "CLIENT" ||
-      !user.client
-    ) {
+    if (!user || user.role !== "CLIENT" || !user.client) {
       return NextResponse.json(
         {
           message: "Client account not found.",
@@ -57,18 +51,16 @@ export async function GET(
 
     const projects = user.client.projects;
 
-    const totalApplications =
-      projects.reduce(
-        (total, project) =>
-          total + project.applications.length,
-        0
-      );
+    const totalApplications = projects.reduce(
+      (total, project) =>
+        total + project.applications.length,
+      0
+    );
 
     return NextResponse.json({
       client: {
         id: user.client.id,
-        companyName:
-          user.client.companyName,
+        companyName: user.client.companyName,
         phone: user.client.phone,
         website: user.client.website,
         address: user.client.address,
@@ -87,15 +79,11 @@ export async function GET(
       projects,
     });
   } catch (error) {
-    console.error(
-      "Client dashboard error:",
-      error
-    );
+    console.error("Client dashboard error:", error);
 
     return NextResponse.json(
       {
-        message:
-          "Unable to load client dashboard.",
+        message: "Unable to load client dashboard.",
       },
       { status: 500 }
     );

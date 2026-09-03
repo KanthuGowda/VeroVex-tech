@@ -1,7 +1,9 @@
+
 "use client";
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function StudentLoginPage() {
   const router = useRouter();
@@ -38,7 +40,6 @@ export default function StudentLoginPage() {
         return;
       }
 
-      // Save logged-in student information
       localStorage.setItem(
         "verovex_student",
         JSON.stringify({
@@ -49,7 +50,6 @@ export default function StudentLoginPage() {
         })
       );
 
-      // Go to student dashboard
       router.push("/student/dashboard");
     } catch (error) {
       console.error(error);
@@ -63,7 +63,7 @@ export default function StudentLoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-gray-50 px-6">
       <div className="w-full max-w-md rounded-xl bg-white p-8 shadow">
 
-        <h1 className="text-3xl font-bold">
+        <h1 className="text-3xl font-bold text-gray-900">
           Student Login
         </h1>
 
@@ -81,7 +81,7 @@ export default function StudentLoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="rounded-lg border px-4 py-3"
+            className="rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
           />
 
           <input
@@ -90,7 +90,7 @@ export default function StudentLoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="rounded-lg border px-4 py-3"
+            className="rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
           />
 
           <button
@@ -103,22 +103,23 @@ export default function StudentLoginPage() {
         </form>
 
         {message && (
-          <p className="mt-5 rounded-lg bg-gray-100 p-4 text-center">
+          <p className="mt-5 rounded-lg bg-gray-100 p-4 text-center text-gray-700">
             {message}
           </p>
         )}
 
         <p className="mt-6 text-center text-sm text-gray-600">
           Don't have an account?{" "}
-          <a
+          <Link
             href="/register"
-            className="font-semibold text-blue-600 hover:underline"
+            className="font-semibold text-blue-600 hover:text-blue-800 hover:underline"
           >
             Register here
-          </a>
+          </Link>
         </p>
 
       </div>
     </main>
   );
 }
+
